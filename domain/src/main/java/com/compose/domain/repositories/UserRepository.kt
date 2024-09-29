@@ -4,5 +4,5 @@ import com.compose.domain.models.User
 import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
-    fun getUser() : Flow<User>
+    suspend fun getUser() : Flow<User?>
 }
