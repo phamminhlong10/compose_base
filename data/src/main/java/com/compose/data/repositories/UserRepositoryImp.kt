@@ -10,5 +10,5 @@ import javax.inject.Inject
 class UserRepositoryImp  @Inject constructor(private val userService: UserService) : UserRepository {
     override suspend fun getUser(): Flow<User?> = flowTransform {
         userService.getUser().results
-    } as Flow<User?>
+    }
 }

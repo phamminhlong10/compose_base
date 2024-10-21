@@ -9,5 +9,5 @@ import kotlin.experimental.ExperimentalTypeInference
 fun <T> flowTransform(@BuilderInference block: suspend FlowCollector<T>.() -> T) = flow {
     runCatching { block() }
         .onSuccess { result -> emit(result) }
-        .onFailure { exception -> emit(exception) }
+        .onFailure { exception -> throw exception }
 }

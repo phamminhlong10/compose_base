@@ -1,18 +1,32 @@
+import org.jetbrains.kotlin.konan.properties.loadProperties
+
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    id(Plugins.ANDROID_APPLICATION)
+    id(Plugins.KOTLIN_ANDROID)
+    id(Plugins.KOTLIN_KAPT)
+    id(Plugins.KOTLIN_PARCELIZE)
+    id(Plugins.HILT_ANDROID)
+}
+
+val signingProperties = loadProperties("$rootDir/signing.properties")
+val getVersionCode: () -> Int = {
+    if (project.hasProperty("versionCode")) {
+        (project.property("versionCode") as String).toInt()
+    } else {
+        Versions.ANDROID_VERSION_CODE
+    }
 }
 
 android {
     namespace = "com.compose.base"
-    compileSdk = 34
+    compileSdk = Versions.ANDROID_COMPILE_SDK
 
     defaultConfig {
         applicationId = "com.compose.base"
-        minSdk = 24
-        targetSdk = 34
+        minSdk = Versions.ANDROID_MIN_SDK
+        targetSdk = Versions.ANDROID_TARGET_SDK
         versionCode = 1
-        versionName = "1.0"
+        versionName = Versions.ANDROID_VERSION_NAME
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -20,9 +34,28 @@ android {
         }
     }
 
+    signingConfigs{
+        create(BuildTypes.RELEASE) {
+            // Remember to edit signing.properties to have the correct info for release build.
+            storeFile = file("../config/release.keystore")
+            storePassword = signingProperties.getProperty("KEYSTORE_PASSWORD") as String
+            keyPassword = signingProperties.getProperty("KEY_PASSWORD") as String
+            keyAlias = signingProperties.getProperty("KEY_ALIAS") as String
+        }
+
+        getByName(BuildTypes.DEBUG) {
+            storeFile = file("../config/debug.keystore")
+            storePassword = "oQ4mL1jY2uX7wD8q"
+            keyAlias = "debug-key-alias"
+            keyPassword = "oQ4mL1jY2uX7wD8q"
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isDebuggable = false
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -34,13 +67,14 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.15"
+        kotlinCompilerExtensionVersion = Versions.COMPOSE_COMPILER
     }
     packaging {
         resources {
@@ -50,20 +84,38 @@ android {
 }
 
 dependencies {
+    implementation(project(Modules.DATA))
+    implementation(project(Modules.DOMAIN))
 
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
-    implementation("androidx.activity:activity-compose:1.9.2")
-    implementation(platform("androidx.compose:compose-bom:2023.08.00"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2023.08.00"))
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+
+    with(Dependencies.AndroidX) {
+        implementation(CORE_KTX)
+        implementation(LIFECYCLE_RUNTIME_KTX)
+        implementation(LIFECYCLE_RUNTIME_COMPOSE)
+        implementation(DATASTORE_PREFERENCES)
+    }
+
+    with(Dependencies.Compose) {
+        implementation(platform(BOM))
+        implementation(UI)
+        implementation(UI_TOOLING)
+        implementation(MATERIAL)
+        implementation(NAVIGATION)
+
+        implementation(ACCOMPANIST_PERMISSIONS)
+    }
+
+    with(Dependencies.Hilt) {
+        implementation(ANDROID)
+        implementation(NAVIGATION_COMPOSE)
+        kapt(COMPILER)
+    }
+
+    with(Dependencies.Log) {
+        implementation(TIMBER)
+
+        debugImplementation(CHUCKER)
+        releaseImplementation(CHUCKER_NO_OP)
+    }
 }
