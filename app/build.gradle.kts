@@ -32,6 +32,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildConfigField("String", "BASE_API_URL", "\"https://jsonplaceholder.typicode.com/\"")
     }
 
     signingConfigs{
@@ -41,6 +42,7 @@ android {
             storePassword = signingProperties.getProperty("KEYSTORE_PASSWORD") as String
             keyPassword = signingProperties.getProperty("KEY_PASSWORD") as String
             keyAlias = signingProperties.getProperty("KEY_ALIAS") as String
+            //buildConfigField("String", "BASE_API_URL", "\"https://jsonplaceholder.typicode.com/\"")
         }
 
         getByName(BuildTypes.DEBUG) {
@@ -48,7 +50,17 @@ android {
             storePassword = "oQ4mL1jY2uX7wD8q"
             keyAlias = "debug-key-alias"
             keyPassword = "oQ4mL1jY2uX7wD8q"
+            //buildConfigField("String", "BASE_API_URL", "\"https://jsonplaceholder.typicode.com/\"")
         }
+    }
+
+    flavorDimensions += Flavors.VERSION
+    productFlavors {
+        create(Flavors.STAGING) {
+            applicationIdSuffix = ".staging"
+        }
+
+        create(Flavors.PRODUCTION) {}
     }
 
     buildTypes {

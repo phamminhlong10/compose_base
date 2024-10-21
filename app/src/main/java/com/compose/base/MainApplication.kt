@@ -3,9 +3,10 @@ package com.compose.base
 import android.app.Application
 import com.compose.base.BuildConfig
 import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 
-@AndroidEntryPoint
+@HiltAndroidApp
 class MainApplication : Application() {
     override fun onCreate() {
         super.onCreate()
